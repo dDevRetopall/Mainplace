@@ -1,4 +1,4 @@
-package tools.datautils;
+package utils.dataUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,7 +16,6 @@ public class FileUtils {
 	static String nombreArchivo = "settings.ini";
 
 	public static void readSettings() {
-		
-	}
 
+	}
 }
