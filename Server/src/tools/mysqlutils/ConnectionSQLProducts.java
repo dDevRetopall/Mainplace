@@ -13,28 +13,30 @@ import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 
-
 import constantesLocalesServidor.ConstantesServer;
 import productos.Producto;
 import search.searchEngine.ProductsSearch;
+import sharedUtils.TimeCalendar;
 import tools.datautils.EncriptarPasswords;
 import tools.datautils.MessageUtils;
 
 public class ConnectionSQLProducts {
 	public boolean escribirMensajesEnConsola = false;
-	private String url;
 	private String usuario;
-	private String password;
 	private Connection con;
 	public Statement st;
 
@@ -60,8 +62,8 @@ public class ConnectionSQLProducts {
 		tablaUsuarioProductos = nombreUsuario + ConstantesServer.nombreTablaProductos;
 	}
 
-	public int configurarProfile(String nombreUsuario, int id, String email,String nombreTablaProductos) {
-
+	public int configurarProfile(String nombreUsuario, int id, String nombreTablaProductos) {
+		this.usuario = usuario;
 		// try {
 		// SQLConnection.escribirMensaje("Creando tabla de informacionProfile");
 		//
@@ -83,10 +85,12 @@ public class ConnectionSQLProducts {
 		try {
 			SQLConnection.escribirMensaje("Creando tabla de productos");
 
-			st.executeUpdate("CREATE TABLE " + nombreTablaProductos + " ("
-					+ "id INT AUTO_INCREMENT, " + "PRIMARY KEY(id), " + "productname VARCHAR(20), "
-					+ "precio DOUBLE PRECISION, " + "infobreve VARCHAR(200), " + "categoria INTEGER, "
-					+ "tipo INTEGER, " + "negociable BOOL, " + "image BLOB, "+"views INTEGER, "+"status INTEGER)");
+			st.executeUpdate("CREATE TABLE " + nombreTablaProductos + " (" + "id INT AUTO_INCREMENT, "
+					+ "PRIMARY KEY(id), " + "productname VARCHAR(20), " + "precio DOUBLE PRECISION, "
+					+ "infobreve VARCHAR(200), " + "categoria INTEGER, " + "tipo INTEGER, " + "negociable BOOL, "
+					+ "image BLOB, " + "views INTEGER, " + "status INTEGER, "
+					+ "creationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+					+ "closedDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
 
 			SQLConnection.escribirMensaje("TablaProductos creada");
 			tablaUsuarioProductos = nombreTablaProductos;
@@ -137,18 +141,18 @@ public class ConnectionSQLProducts {
 		return id;
 	}
 
-	public boolean insertarProducto(Connection con, String nombre, double price, String info, int tipo, int categoria,
+	public int insertarProducto(Connection con, String nombre, double price, String info, int tipo, int categoria,
 			boolean negociable, byte[] imageInByte) {
-	
-		
-		
-		
-
+		String[] generatedId = { "id" };
+		java.sql.Timestamp date = new java.sql.Timestamp(new java.util.Date().getTime());
 		try {
 			ByteArrayInputStream bais = new ByteArrayInputStream(imageInByte);
 			PreparedStatement ps = con
-					.prepareStatement("INSERT INTO " + this.tablaUsuarioProductos + " (" + "productname, " + "precio, "
-							+ "infobreve, " + "categoria, " + "tipo, " + "negociable, " + "image, "+"views, "+"status)"+"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+					.prepareStatement(
+							"INSERT INTO " + this.tablaUsuarioProductos + " (" + "productname, " + "precio, "
+									+ "infobreve, " + "categoria, " + "tipo, " + "negociable, " + "image, " + "views, "
+									+ "status," + "creationDate)" + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+							generatedId);
 			ps.setString(1, nombre);
 			ps.setDouble(2, price);
 			ps.setString(3, info);
@@ -158,17 +162,28 @@ public class ConnectionSQLProducts {
 			ps.setBinaryStream(7, bais);
 			ps.setInt(8, 0);
 			ps.setInt(9, 0);
-			ps.execute();
+			ps.setTimestamp(10, date);
+			int result = ps.executeUpdate();
+			if (result > 0) {
+
+				ResultSet rs = ps.getGeneratedKeys();
+				if (rs.next()) {
+					return (int) rs.getLong(1);
+				}
+
+			}
 			ps.close();
+			
+
 			SQLConnection.escribirMensaje("Se ha insertado el producto " + nombre);
-			return true;
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.err.println("Got an exception! ");
-			
+
 		}
-	
-		return false;
+
+		return -1;
 	}
 
 	public boolean eliminarProducto(Connection con, int idProducto) {
@@ -185,7 +200,7 @@ public class ConnectionSQLProducts {
 	}
 
 	public boolean editarProducto(Connection con, int id, String nombre, double precio, String info, int tipo,
-			int categoria, boolean negociable,byte[]imageInByte) {
+			int categoria, boolean negociable, byte[] imageInByte) {
 		try {
 			ByteArrayInputStream bais = new ByteArrayInputStream(imageInByte);
 			PreparedStatement ps = con.prepareStatement("UPDATE " + this.tablaUsuarioProductos
@@ -203,25 +218,26 @@ public class ConnectionSQLProducts {
 			ps.close();
 			return true;
 		} catch (Exception e) {
-			
+
 			System.out.println("We got an exception");
 
 		}
 		return false;
 	}
-	public boolean updateStatus(Connection con, int id,int status) {
+
+	public boolean updateStatus(Connection con, int id, int status) {
 		try {
-			
-			PreparedStatement ps = con.prepareStatement("UPDATE " + this.tablaUsuarioProductos
-					+ " SET status = ? WHERE id = "+ id);
+
+			PreparedStatement ps = con
+					.prepareStatement("UPDATE " + this.tablaUsuarioProductos + " SET status = ? WHERE id = " + id);
 
 			ps.setInt(1, status);
-			
+
 			ps.executeUpdate();
 			ps.close();
 			return true;
 		} catch (Exception e) {
-			
+
 			System.out.println("We got an exception");
 
 		}
@@ -250,7 +266,10 @@ public class ConnectionSQLProducts {
 				Blob imageBlob = rs.getBlob("image");
 				byte[] imageBytes = imageBlob.getBytes(1, (int) imageBlob.length());
 				int status = rs.getInt("status");
-				productos.add(new Producto(id, productName, precio, info, tipo, categoria, negociable,imageBytes,status));
+				Timestamp date = rs.getTimestamp("creationDate");
+				TimeCalendar t = new TimeCalendar(date);
+				productos.add(new Producto(id, productName, precio, info, tipo, categoria, negociable, imageBytes,
+						status, t));
 
 				// print the results
 
@@ -263,9 +282,8 @@ public class ConnectionSQLProducts {
 		return productos;
 
 	}
-	
 
-	public Producto getProductById( int id) {
+	public Producto getProductById(int id) {
 		try {
 			String query = "SELECT * FROM " + this.tablaUsuarioProductos;
 
@@ -285,7 +303,10 @@ public class ConnectionSQLProducts {
 					Blob imageBlob = rs.getBlob("image");
 					byte[] imageBytes = imageBlob.getBytes(1, (int) imageBlob.length());
 					int status = rs.getInt("status");
-					return new Producto(id, productName, precio, info, tipo, categoria, negociable,imageBytes,status);
+					Timestamp date = rs.getTimestamp("creationDate");
+					TimeCalendar t = new TimeCalendar(date);
+					return new Producto(id, productName, precio, info, tipo, categoria, negociable, imageBytes, status,
+							t);
 
 					// print the results
 
@@ -302,65 +323,68 @@ public class ConnectionSQLProducts {
 		return null;
 
 	}
-	public int getStatusById(int id){
-		try{
-		String query = "SELECT * FROM " + this.tablaUsuarioProductos;
 
-		// create the java statement
+	public int getStatusById(int id) {
+		try {
+			String query = "SELECT * FROM " + this.tablaUsuarioProductos;
 
-		// execute the query, and get a java resultset
-		ResultSet rs = st.executeQuery(query);
+			// create the java statement
 
-		while (rs.next()) {
-			if (rs.getInt("id") == id) {
-				
-				int status = rs.getInt("status");
-				return status;
+			// execute the query, and get a java resultset
+			ResultSet rs = st.executeQuery(query);
 
-				// print the results
+			while (rs.next()) {
+				if (rs.getInt("id") == id) {
 
-			}
+					int status = rs.getInt("status");
+					return status;
 
-		}
-		MessageUtils.logn("We couldnt find any products in " + this.tablaUsuarioProductos + " with de Id " + id+" for searching the status");
-		return -1;
+					// print the results
 
-	} catch (Exception e) {
-		System.err.println("Got an exception! ");
-		System.err.println(e.getMessage());
-	}
-	return -1;
-	}
-	public int getViewsById(int id){
-		try{
-		String query = "SELECT * FROM " + this.tablaUsuarioProductos;
-
-		// create the java statement
-
-		// execute the query, and get a java resultset
-		ResultSet rs = st.executeQuery(query);
-
-		while (rs.next()) {
-			if (rs.getInt("id") == id) {
-				
-				int views = rs.getInt("views");
-				return views;
-
-				// print the results
+				}
 
 			}
+			MessageUtils.logn("We couldnt find any products in " + this.tablaUsuarioProductos + " with de Id " + id
+					+ " for searching the status");
+			return -1;
 
+		} catch (Exception e) {
+			System.err.println("Got an exception! ");
+			System.err.println(e.getMessage());
 		}
-		MessageUtils.logn("We couldnt find any products in " + this.tablaUsuarioProductos + " with de Id " + id+" for searching the views");
 		return -1;
-
-	} catch (Exception e) {
-		System.err.println("Got an exception! ");
-		System.err.println(e.getMessage());
-	}
-	return -1;
 	}
 
+	public int getViewsById(int id) {
+		try {
+			String query = "SELECT * FROM " + this.tablaUsuarioProductos;
+
+			// create the java statement
+
+			// execute the query, and get a java resultset
+			ResultSet rs = st.executeQuery(query);
+
+			while (rs.next()) {
+				if (rs.getInt("id") == id) {
+
+					int views = rs.getInt("views");
+					return views;
+
+					// print the results
+
+				}
+
+			}
+			MessageUtils.logn("We couldnt find any products in " + this.tablaUsuarioProductos + " with de Id " + id
+					+ " for searching the views");
+			return -1;
+
+		} catch (Exception e) {
+			System.err.println("Got an exception! ");
+			System.err.println(e.getMessage());
+		}
+		return -1;
+	}
 
 	public String getTablaUsuarioProductos() {
 		return tablaUsuarioProductos;

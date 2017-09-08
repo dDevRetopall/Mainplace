@@ -1,4 +1,4 @@
-package findProducts.search;
+package products.findProducts.search;
 
 
 import java.awt.Color;

@@ -1,6 +1,8 @@
-package findProducts.search;
+package gui.jcomponents.tables;
 
 import java.awt.Image;
+
+import sharedUtils.TimeCalendar;
 
 public class SafeProducto {
 	private String usuario;
@@ -14,9 +16,10 @@ public class SafeProducto {
 	private Image i;
 	private byte[] imgbytes;
 	private int status;
+	private TimeCalendar createDate;
 
 	public SafeProducto(String usuario, int idProducto, String nameProducto, String informacion, boolean negociable,
-			int categoria, int tipo, double precio, Image i, byte[] imgbytes, int status) {
+			int categoria, int tipo, double precio, Image i, byte[] imgbytes, int status,TimeCalendar createDate) {
 		this.usuario = usuario;
 		this.idProducto = idProducto;
 		this.nameProducto = nameProducto;
@@ -28,6 +31,7 @@ public class SafeProducto {
 		this.i = i;
 		this.imgbytes = imgbytes;
 		this.status = status;
+		this.createDate = createDate;
 
 	}
 
@@ -74,6 +78,11 @@ public class SafeProducto {
 	public int getStatus() {
 		return status;
 	}
+
+	public TimeCalendar getCreateDate() {
+		return createDate;
+	}
+	
 	
 
 }

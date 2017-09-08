@@ -34,6 +34,7 @@ public class UpdateStatusWindow extends JFrame {
 	JLabel l = new JLabel(ConstantesCategorias.fases[0]);
 	JLabel l1 = new JLabel(ConstantesCategorias.fases[1]);
 	JLabel l2 = new JLabel(ConstantesCategorias.fases[2]);
+	public JLabel warning = new JLabel("The product is now closed. It will disappear in one day");
 	boolean fistUpdate = false;
 	Font font = new Font("Agency FB", Font.BOLD, 24);
 	JPanel pButtons = new JPanel(new FlowLayout());
@@ -73,7 +74,14 @@ public class UpdateStatusWindow extends JFrame {
 
 		b.setSize(180, 55);
 		b.setBounds(this.getWidth() / 2 - bl.getWidth() / 2, 250, 180, 55);
-
+		
+		warning.setSize(600, 50);
+		warning.setLocation(this.getWidth() / 2 - warning.getWidth() /2,315);
+		warning.setVisible(false);
+		warning.setFont(font);
+		warning.setForeground(new Color(0, 0, 153));
+		warning.setHorizontalAlignment(JLabel.CENTER);
+		
 		slider.setBounds(75, 150, 450, 50);
 
 		slider.setUI(new MySliderUI(slider));
@@ -90,6 +98,7 @@ public class UpdateStatusWindow extends JFrame {
 		mainPanel.add(l);
 		mainPanel.add(l1);
 		mainPanel.add(l2);
+		mainPanel.add(warning);
 
 		
 		this.setVisible(true);
@@ -99,7 +108,13 @@ public class UpdateStatusWindow extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				b.setHabilitado(false);
+				if(id==2) {
+					warning.setVisible(true);
+				}else {
+					warning.setVisible(false);
+				}
 				MainCliente.updateStatus(slider.getValue(), id);
+				
 
 			}
 		});
@@ -127,5 +142,6 @@ public class UpdateStatusWindow extends JFrame {
 		} else if (slider.getValue() == 2) {
 			bl.updateColorTexto(new Color(64, 64, 64), ConstantesCategorias.fases[2]);
 		}
+		
 	}
 }

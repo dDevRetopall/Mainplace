@@ -29,4 +29,13 @@ public class Label extends JLabel {
 		this.setIcon(imageIcon);
 		this.setText(text);
 	}
+	public void changeIcon(String pathIcon,String text,int scale){
+		ImageIcon imageIcon = new ImageIcon(getClass().getResource(Constantes.nameFolderImg+"/"+pathIcon)); 
+		Image image = imageIcon.getImage(); 
+		Image newimg = image.getScaledInstance(scale, scale, java.awt.Image.SCALE_SMOOTH); 
+		
+		imageIcon = new ImageIcon(newimg);
+		this.setIcon(imageIcon);
+		this.setText(text);
+	}
 }

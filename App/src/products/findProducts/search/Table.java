@@ -1,4 +1,4 @@
-package findProducts.search;
+package products.findProducts.search;
 
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
@@ -31,11 +31,15 @@ import javax.swing.table.DefaultTableModel;
 
 import cliente.net.connection.MainCliente;
 import gui.jcomponents.Label;
+import gui.jcomponents.tables.CellPanel;
+import gui.jcomponents.tables.SafeProducto;
+import gui.jcomponents.tables.View;
 import main.mainApplication.Constantes;
 import main.mainApplication.MainApplication;
 import productos.Producto;
 import products.myProducts.main.ConstantesCategorias;
 import products.myProducts.preview.PreviewWindow;
+import sharedUtils.TimeCalendar;
 import utils.dataUtils.FontLoader;
 import utils.imageUtils.ImageUtilsUpdater;
 
@@ -65,7 +69,7 @@ public class Table extends JScrollPane {
 		this.setBorder(BorderFactory.createEmptyBorder());
 		getViewport().setPreferredSize(new Dimension(600, 400));
 		getVerticalScrollBar().setUnitIncrement(5);
-		this.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_ALWAYS);
+		this.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_AS_NEEDED);
 		
 
 	}
@@ -97,11 +101,11 @@ public class Table extends JScrollPane {
 		}
 
 		if (izquierda) {
-			cp.getPanel().setBounds(borde, y, 200, 120);
+			cp.getPanel().setBounds(borde, y, 200, 130);
 
 			izquierda = false;
 		} else {
-			cp.getPanel().setBounds(borde + 250, y, 200, 120);
+			cp.getPanel().setBounds(borde + 250, y, 200, 130);
 
 			izquierda = true;
 		}
@@ -144,7 +148,7 @@ public class Table extends JScrollPane {
 				}
 				
 				MainApplication.pview.update(new Producto(ps.getIdProducto(), ps.getNameProducto(), ps.getPrecio(),
-						ps.getInformacion(), ps.getTipo(), ps.getCategoria(), ps.isNegociable(), ps.getImgbytes(),ps.getStatus()),
+						ps.getInformacion(), ps.getTipo(), ps.getCategoria(), ps.isNegociable(), ps.getImgbytes(),ps.getStatus(),ps.getCreateDate()),
 						ps.getUsuario());
 
 			}
@@ -185,7 +189,7 @@ public class Table extends JScrollPane {
 	}
 
 	public void createNewRow(String usuario, int id, String producto, String informacion, boolean negociable,
-			int categoria, int tipo, double price, byte[] imageBytes,int views,int status) {
+			int categoria, int tipo, double price, byte[] imageBytes,int views,int status,TimeCalendar createTime) {
 		String palabra = "Si";
 		if (!negociable) {
 			palabra = "No";
@@ -219,36 +223,36 @@ public class Table extends JScrollPane {
 		p.setLayout(null);
 		JLabel precio = new JLabel(Double.toString(price) + "€");
 		JLabel titulo = new JLabel(producto);
-		titulo.setHorizontalAlignment(JLabel.CENTER);
+		titulo.setHorizontalAlignment(JLabel.LEFT);
 		titulo.setForeground(new Color(0, 0, 153));
 		titulo.setFont(new Font("Arial", Font.BOLD, 16));
 		precio.setFont(new Font("Arial", Font.BOLD, 16));
 		p.add(titulo);
 		p.add(precio);
-		titulo.setBounds(105, 15, 90, 15);
-		precio.setBounds(105, 40, 90, 15);
+		titulo.setBounds(15, 0, 175, 25);
+		precio.setBounds(105, 30, 90, 15);
 		precio.setHorizontalAlignment(JLabel.CENTER);
-		
+
 		Label viewsL = new Label();
-		viewsL.setBounds(105,85,90,20);
+		viewsL.setBounds(105, 105, 90, 20);
 		viewsL.setHorizontalAlignment(JLabel.CENTER);
-		viewsL.changeIcon("views.jpg", Integer.toString(views));
+		viewsL.changeIcon("views.jpg", Integer.toString(views),15);
 		viewsL.setForeground(Color.gray);
-		viewsL.setFont(new Font("Arial", Font.BOLD, 18));
+		viewsL.setFont(new Font("Arial", Font.BOLD, 14));
 		p.add(viewsL);
-		
+
 		JLabel l = new JLabel();
 		l.setIcon(imageIcon);
-		l.setBounds(10, 10, 100, 100);
-	
+		l.setBounds(10, 25, 100, 100);
+
 		l.setBorder(new LineBorder(Color.black));
 		JPanel p2 = new JPanel(new FlowLayout());
-		
+
 		JLabel lStatus= new JLabel();
 		lStatus.setHorizontalAlignment(JLabel.CENTER);
 		lStatus.setText(ConstantesCategorias.fases[status].toUpperCase());
 		lStatus.setFont(font);
-		lStatus.setBounds(105, 60, 90, 20);
+		lStatus.setBounds(105, 50, 90, 20);
 		if(status==0){
 			lStatus.setForeground(new Color(0,153,0));
 		}else if (status==1){
@@ -258,14 +262,30 @@ public class Table extends JScrollPane {
 		}
 		p2.setOpaque(false);
 
+		JLabel lUser= new JLabel();
+		lUser.setHorizontalAlignment(JLabel.CENTER);
+		lUser.setText("By "+usuario);
+		lUser.setFont(new Font("Arial", Font.BOLD, 12));
+		lUser.setForeground(Color.GRAY);
+		lUser.setBounds(105, 75, 90, 20);
+		JLabel lTime= new JLabel();
+		lTime.setHorizontalAlignment(JLabel.CENTER);
+		lTime.setText(TimeCalendar.parseo(createTime));
+		lTime.setFont(new Font("Arial", Font.BOLD, 12));
+		lTime.setForeground(Color.GRAY);
+		lTime.setBounds(110, 90, 90, 20);
 		
 		p.add(l);
 		p.add(lStatus);
-		p.setSize(200, 120);
+		p.add(lTime);
+		p.add(lUser);
+		p.setSize(200,130);
+
+
 		
 		JLabel texto = new JLabel();
 		addNewCell(p, new SafeProducto(usuario, id, producto, informacion, negociable, categoria, tipo, price,
-				imageIcon.getImage(), imageBytes,status));
+				imageIcon.getImage(), imageBytes,status,createTime));
 
 	}
 	public boolean conditionView(String username,int idProducto){

@@ -33,7 +33,10 @@ import javax.swing.border.MatteBorder;
 import javax.swing.border.TitledBorder;
 
 import cliente.net.connection.MainCliente;
+import constantes.ServerStatusConstants;
+import gui.jcomponents.ImageLabel;
 import gui.jcomponents.JPanelBackground;
+import main.mainApplication.Constantes;
 import main.mainApplication.MainApplication;
 
 public class Launcher extends JFrame {
@@ -50,16 +53,16 @@ public class Launcher extends JFrame {
 	JPanel p2 = new JPanel(new FlowLayout());
 	JPanel p5 = new JPanel();
 	JLabel createAccount = new JLabel("I don't have an account");
-	JLabel lMError = new JLabel ();
+	public JLabel lMError = new JLabel ();
 	CustomButton enter;
 	int HEIGHT, WIDTH;
-
-
+	ImageLabel il = new ImageLabel(20);
+	JPanel north = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
 	private String mensajeError="Default error";
 	private boolean enviarmensajeError=false;
 
-	public Launcher() {
+	public Launcher(boolean conectado) {
 
 		centro.setLayout(new BoxLayout(centro, BoxLayout.Y_AXIS));
 
@@ -80,6 +83,13 @@ public class Launcher extends JFrame {
 		this.setLayout(null);
 
 		mainPanel.setOpaque(false);
+		
+		north.setOpaque(false);
+		north.add(il);
+		north.setBounds(0,0,750,30);
+		il.setForeground(new Color(0,153,0));
+		
+		
 
 		arriba.setOpaque(false);
 		abajo.setOpaque(false);
@@ -93,6 +103,7 @@ public class Launcher extends JFrame {
 
 		arriba.setBounds(WIDTH / 2 - 80, 15, 160, 60);
 		mainPanel.add(arriba);
+		mainPanel.add(north);
 
 		font = font.deriveFont(Font.PLAIN, 21);
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -152,11 +163,13 @@ public class Launcher extends JFrame {
 		mainPanel.add(createAccount);
 		mainPanel.add(p5);
 		mainPanel.add(centro);
+		
 
 		enter.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if(conectado) {
 				String password = "";
 				char[] pwd = tf2.getPassword();
 				for (char c : pwd) {
@@ -170,8 +183,16 @@ public class Launcher extends JFrame {
 				}else{
 				enviarMensajeDeError("The fields must not be empty");	
 				}
+				}else {
+					enviarMensajeDeError("Server is not working now");	
+				}
 			}
 		});
+		if(conectado) {
+		MainCliente.requestStatusServer();
+		}else {
+		updateStatusServer(3);
+		}
 	}
 
 	public void aplicarDecoracion(JTextField tf) {
@@ -201,6 +222,33 @@ public class Launcher extends JFrame {
 		mainPanel.updateUI();
 	
 
+	}
+	public void updateStatusServer(int idStatusServer) {
+		
+		String status = ServerStatusConstants.status[idStatusServer];
+
+		if(idStatusServer==0) {
+			il.changeIcon("working.jpg", status);
+			il.setForeground(new Color(0,153,0));
+		}
+		if(idStatusServer==1) {
+			il.changeIcon("maintenance.jpg", status);
+			il.setForeground(new Color(255,128,0));
+		}
+		if(idStatusServer==2) {
+			il.changeIcon("maintenance.jpg", status);
+			il.setForeground(new Color(255,128,0));
+		}
+		if(idStatusServer==3) {
+			il.changeIcon("notworking.jpg", status);
+			il.setForeground(new Color(200,0,0));
+		}
+		if(idStatusServer==4) {
+			il.changeIcon("notworking.jpg", status);
+			il.setForeground(new Color(200,0,0));
+		}
+		System.out.println(status);
+		
 	}
 
 }

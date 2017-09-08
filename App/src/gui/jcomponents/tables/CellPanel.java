@@ -1,4 +1,4 @@
-package findProducts.search;
+package gui.jcomponents.tables;
 
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;

@@ -2,6 +2,8 @@ package productos;
 
 import java.io.Serializable;
 
+import sharedUtils.TimeCalendar;
+
 public class Producto implements Serializable{
 	private String name;
 	private double price;
@@ -12,9 +14,10 @@ public class Producto implements Serializable{
 	private int id;
 	private byte[] imageBytes;
 	private int status;
+	private TimeCalendar time;
 
 
-	public Producto(int id,String name,double price,String informacion,int tipo,int categoria,boolean negociable,byte[]imageBytes,int status){
+	public Producto(int id,String name,double price,String informacion,int tipo,int categoria,boolean negociable,byte[]imageBytes,int status,TimeCalendar time){
 		this.id = id;
 		this.name = name;
 		this.price = price;
@@ -24,6 +27,7 @@ public class Producto implements Serializable{
 		this.negociable = negociable;
 		this.imageBytes = imageBytes;
 		this.status = status;
+		this.time = time;
 		
 		
 	}
@@ -63,6 +67,11 @@ public class Producto implements Serializable{
 	public int getStatus() {
 		return status;
 	}
+
+	public TimeCalendar getTime() {
+		return time;
+	}
+	
 	
 
 

@@ -15,19 +15,23 @@ import mensajes.commands.EmailCodeVerification;
 import mensajes.commands.EmailResponse;
 import mensajes.commands.LoginResponse;
 import mensajes.commands.RegisterCommand;
+import mensajes.commands.StatusServerReponse;
 import mensajes.commands.UserResponse;
 import mensajes.requests.CreateProductRequest;
 import mensajes.requests.EmailExistRequest;
 import mensajes.requests.LoginRequest;
 import mensajes.requests.RegisterRequest;
+import mensajes.requests.RequestServerStatus;
 import mensajes.requests.SendEmailRequest;
+import mensajes.requests.TransferProductToSoldProductRequest;
 import mensajes.requests.UserExistRequest;
 import productos.InformacionProducto;
 import productos.ProductId;
 import productos.Producto;
 import productos.ProductsRequest;
-import productos.SendStatusViews;
+import productos.SendStatusViewsExpire;
 import productos.UpdateStatus;
+import search.ProductRecentSearch;
 import search.ProductoSearch;
 import search.SearchInfo;
 import search.searchEngine.ProductsSearch;
@@ -45,12 +49,15 @@ import tools.datautils.MessageUtils;
 import tools.datautils.PasswordGenerator;
 import tools.emailUtils.Verification;
 import tools.mysqlutils.ConnectionSQLProducts;
+import tools.mysqlutils.ConnectionSQLProductsSold;
 import tools.mysqlutils.ConnectionSQLUsuarios;
 import tools.mysqlutils.SQLConnection;
+import utils.threadUtils.ExpirationCoolDown;
+import utils.threadUtils.TransferationCoolDown;
 
 public class Cliente {
 
-	private Socket s;
+	public Socket s;
 	private String ip;
 	private boolean connected = false;
 	private OutputStream os;
@@ -58,6 +65,7 @@ public class Cliente {
 	public ObjectOutputStream oos;
 	public ObjectInputStream ois;
 	public ConnectionSQLProducts p;
+	public ConnectionSQLProductsSold ps;
 	public ControlProfile sp;
 	public boolean online = false;
 
@@ -75,7 +83,7 @@ public class Cliente {
 			System.out.println("Error");
 			e.printStackTrace();
 		}
-		
+
 		Thread obtenerMensajes = new Thread(new Runnable() {
 
 			@Override
@@ -84,18 +92,24 @@ public class Cliente {
 					try {
 
 						Object o = ois.readObject();
-						MessageUtils.logn("Detectado un mensaje: " + o.getClass().getName());
+						MessageUtils.logn(
+								"Detectado un mensaje: " + o.getClass().getName() + " del usuario " + sp.username);
 						// revisar
 						if (o instanceof RegisterRequest) {
 
 							RegisterRequest rr = (RegisterRequest) o;
 							String nombreTableProductos = rr.getUser() + ConstantesServer.nombreTablaProductos;
+							String nombreTableProductosSold = rr.getUser()
+									+ ConstantesServer.nombreTablaProductosVendidos;
 							boolean respuesta = ConnectionSQLUsuarios.añadirUsuario(ConstantesServer.nombreTabla,
 									rr.getUser(), rr.getPwd(), rr.getTelefono(), rr.getEmail(), nombreTableProductos);
 							if (respuesta) {
-								p = sp.setup(SQLConnection.getConnection(), rr.getUser(),
+								p = sp.setupProducts(SQLConnection.getConnection(), rr.getUser(),
 										ConnectionSQLUsuarios.getId(ConstantesServer.nombreTabla, rr.getUser()),
 										rr.getEmail(), nombreTableProductos);
+								ps = sp.setupProductsSold(SQLConnection.getConnection(), rr.getUser(),
+										ConnectionSQLUsuarios.getId(ConstantesServer.nombreTabla, rr.getUser()),
+										nombreTableProductosSold);
 							}
 							System.out.println("Respuesta: " + respuesta);// +"
 																			// "+rr.getUser()+"
@@ -130,61 +144,83 @@ public class Cliente {
 						if (o instanceof LoginRequest) {
 							LoginRequest lr = (LoginRequest) o;
 							boolean alreadyOnline = false;
-							System.out.println("Sockets: " + Main.clientes.size());
-							for (int i = 0; i < Main.clientes.size(); i++) {
-								if (Main.clientes.get(i).online) {
-									if (Main.clientes.get(i).sp.username.equals(lr.getUsername())) {
-										alreadyOnline = true;
-										System.out.println(lr.getUsername());
+							if (Main.aceptarConexiones) {
+								System.out.println("Sockets: " + Main.clientes.size());
+								for (int i = 0; i < Main.clientes.size(); i++) {
+									if (Main.clientes.get(i).online) {
+										if (Main.clientes.get(i).sp.username.equals(lr.getUsername())) {
+											alreadyOnline = true;
+											System.out.println(lr.getUsername());
+										}
 									}
 								}
-							}
 
-							boolean resultado = ConnectionSQLUsuarios.consultarUsuario(ConstantesServer.nombreTabla,
-									lr.getUsername(), lr.getPwd());
-							if(ConstantesServer.requiredVersion.equals(lr.getVersion())){
-							if(ConstantesServer.serverOperational){
-							if (!alreadyOnline) {
-								if (resultado) {
-									enviarRespuestaLogin(resultado, lr.getUsername(),0);
-									online = true;
-									p = sp.login(SQLConnection.getConnection(), lr.getUsername(), lr.getPwd());
-								}else{
-									enviarRespuestaLogin(resultado, lr.getUsername(),0);
+								boolean resultado = ConnectionSQLUsuarios.consultarUsuario(ConstantesServer.nombreTabla,
+										lr.getUsername(), lr.getPwd());
+								if (ConstantesServer.requiredVersion.equals(lr.getVersion())) {
+									if (ConstantesServer.serverOperational) {
+
+										if (resultado) {
+											if (!alreadyOnline) {
+												Usuario u = ConnectionSQLUsuarios.returnUsuarioByName(
+														ConstantesServer.nombreTabla, lr.getUsername());
+
+												enviarRespuestaLogin(resultado, lr.getUsername(), u.getPhone(),
+														u.getEmail());// No error
+												online = true;
+												sp.login(SQLConnection.getConnection(), lr.getUsername(), lr.getPwd(),
+														u.getEmail(), u.getPhone());
+												p = sp.initializeProductsTable(SQLConnection.getConnection(),
+														lr.getUsername());
+												ps = sp.initializeSoldProductsTable(SQLConnection.getConnection(),
+														lr.getUsername());
+											} else {
+												resultado = false;
+												enviarRespuestaLogin(resultado, lr.getUsername(), 1);
+											}
+										} else {
+											enviarRespuestaLogin(resultado, lr.getUsername(), 0);
+										}
+										System.out.println("Respuesta: " + resultado);
+
+									} else {
+										resultado = false;
+										enviarRespuestaLogin(resultado, lr.getUsername(), 2);
+									}
+								} else {
+									resultado = false;
+									enviarRespuestaLogin(resultado, lr.getUsername(), 3);
+									enviarDialogResponse(ErrorMessagesUtils.errors[3], "Outdated client");
 								}
-								System.out.println("Respuesta: " + resultado);
-							}else{
-								resultado=false;
-								enviarRespuestaLogin(resultado, lr.getUsername(),1);
-							}
-							}else{
-								resultado=false;
-								enviarRespuestaLogin(resultado, lr.getUsername(),2);
-							}
-							}else{
-								resultado=false;
-								enviarRespuestaLogin(resultado, lr.getUsername(),3);
-								enviarDialogResponse(ErrorMessagesUtils.errors[3], "Outdated client");
-							}
 
+							} else {
+								enviarRespuestaLogin(false, lr.getUsername(), 4);
+							}
 						}
 						if (o instanceof CreateProductRequest) {
 							CreateProductRequest cpr = (CreateProductRequest) o;
 
-							boolean resultado = p.insertarProducto(SQLConnection.getConnection(), cpr.getName(),
-									cpr.getPrice(), cpr.getInfo(), cpr.getTipo(), cpr.getCategoria(),
-									cpr.isNegociable(), cpr.getImage());
-							if (resultado) {
+							int id = p.insertarProducto(SQLConnection.getConnection(), cpr.getName(), cpr.getPrice(),
+									cpr.getInfo(), cpr.getTipo(), cpr.getCategoria(), cpr.isNegociable(),
+									cpr.getImage());
+							if (id != -1) {
+								ExpirationCoolDown ec = new ExpirationCoolDown(sp.username, id, p.tablaUsuarioProductos,
+										ps.tablaUsuarioProductosVendidos, "ExpirationCooldown");
+								Main.onExpirationTimeProducts.add(ec);
+								MessageUtils.logn("Se ha añadido a " + sp.username + " un expiration time al id " + id);
+								ec.start();
 								ArrayList<Producto> productos = sp.getProducts(p, SQLConnection.getConnection(),
 										sp.username);
+								System.out.println("Respuesta: " + "CREATED");
 								if (productos != null) {
 									enviarProductos(productos);
 								} else {
 									MessageUtils.logn("Null arraylist productos from the user " + sp.idUsuario + " : "
 											+ sp.username);
 								}
+							} else {
+								System.out.println("Respuesta: " + "ERROR");
 							}
-							System.out.println("Respuesta: " + resultado);
 
 						}
 						if (o instanceof ProductId) {
@@ -208,6 +244,7 @@ public class Cliente {
 										+ " edited succesfully");
 								ArrayList<Producto> productos = sp.getProducts(p, SQLConnection.getConnection(),
 										sp.username);
+
 								if (productos != null) {
 									enviarProductos(productos);
 								} else {
@@ -229,6 +266,21 @@ public class Cliente {
 										+ " removed succesfully");
 								ArrayList<Producto> productos = sp.getProducts(p, SQLConnection.getConnection(),
 										sp.username);
+								for (int i = 0; i < Main.onExpirationTimeProducts.size(); i++) {
+									if (Main.onExpirationTimeProducts.get(i).idProducto == ep.getId()) {
+										Main.onExpirationTimeProducts.get(i).continuing = false;
+										Main.onExpirationTimeProducts.remove(i);
+
+									}
+								}
+								for (int i = 0; i < Main.onCooldownProducts.size(); i++) {
+									if (Main.onCooldownProducts.get(i).idProducto == ep.getId()) {
+										Main.onCooldownProducts.get(i).continuing = false;
+										Main.onCooldownProducts.remove(i);
+
+									}
+								}
+
 								if (productos != null) {
 									enviarProductos(productos);
 								} else {
@@ -275,26 +327,68 @@ public class Cliente {
 								System.out.println("Ha habido un error getStatusViewsId");
 
 							} else {
-								enviarStatusViews(new SendStatusViews(status, views));
+								for (ExpirationCoolDown ec : Main.onExpirationTimeProducts) {
+									if (sp.username.equals(ec.username) && si.getId() == ec.idProducto) {
+										enviarStatusViews(new SendStatusViewsExpire(status, views, ec.getHoursLeft()));
+									}
+								}
+
 							}
 						}
 						if (o instanceof UpdateStatus) {
 							UpdateStatus us = (UpdateStatus) o;
 							boolean resultado = sp.updateStatus(us.getIdProducto(), us.getStatus(), p,
 									SQLConnection.getConnection());
+
 							if (resultado) {
 								int status = sp.getStatusById(us.getIdProducto(), p);
 								int views = sp.getViewsById(us.getIdProducto(), p);
+								if (us.getStatus() == 2) {
+									TransferationCoolDown tc = new TransferationCoolDown(sp.username,
+											us.getIdProducto(), p.tablaUsuarioProductos,
+											ps.tablaUsuarioProductosVendidos, "ThreadTransferation");
+									tc.start();
+									// enviarDialogResponse("Warning", "The product is now closed. It will disppear
+									// from your products in one day");
+									Main.onCooldownProducts.add(tc);
+								} else {
+									for (TransferationCoolDown tc : Main.onCooldownProducts) {
+										if (tc.idProducto == us.getIdProducto()) {
+											tc.continuing = false;
+										}
+									}
+								}
+
 								if (status == -1 || views == -1) {
 									System.out.println("Ha habido un error getStatusViewsId");
 
 								} else {
-									enviarStatusViews(new SendStatusViews(status, views));
+									for (ExpirationCoolDown ec : Main.onExpirationTimeProducts) {
+
+										if (sp.username.equals(ec.username) && us.getIdProducto() == ec.idProducto) {
+											enviarStatusViews(
+													new SendStatusViewsExpire(status, views, ec.getHoursLeft()));
+										}
+									}
 								}
+
 							} else {
 								MessageUtils.logn("Error trying to update the status of productID " + us.getIdProducto()
 										+ " to status " + us.getStatus() + "from the user " + sp.username);
 							}
+						}
+						if (o instanceof ProductRecentSearch) {
+							ArrayList<ProductsSearch> productos = SearchHandler.searchRecents();
+							for (ProductsSearch ps : productos) {
+								enviarProductReciente(new ProductRecentSearch(ps.getUsername(), ps.getId(),
+										ps.getNameProduct(), ps.getPrecio(), ps.getInformacion(), ps.getTipo(),
+										ps.getCategoria(), ps.isNegociable(), ps.getImageBytes(), ps.getViews(),
+										ps.getStatus(), ps.getTime()));
+							}
+						}
+						if (o instanceof RequestServerStatus) {
+							int idServerStatus = Main.getIdOperationServer();
+							sendStatusServer(idServerStatus);
 						}
 
 					} catch (ClassNotFoundException | IOException e) {
@@ -349,9 +443,18 @@ public class Cliente {
 		}
 	}
 
-	public void enviarRespuestaLogin(boolean respuesta, String username,int error) {
+	public void enviarRespuestaLogin(boolean respuesta, String username, int error) {
 		try {
 			oos.writeObject(new LoginResponse(respuesta, ErrorMessagesUtils.errors[error], username));
+		} catch (IOException e) {
+			System.out.println("Error 3");
+			e.printStackTrace();
+		}
+	}
+
+	public void enviarRespuestaLogin(boolean respuesta, String username, String phone, String email) {
+		try {
+			oos.writeObject(new LoginResponse(respuesta, username, phone, email));
 		} catch (IOException e) {
 			System.out.println("Error 3");
 			e.printStackTrace();
@@ -385,7 +488,7 @@ public class Cliente {
 		}
 	}
 
-	public void enviarStatusViews(SendStatusViews s) {
+	public void enviarStatusViews(SendStatusViewsExpire s) {
 		try {
 			oos.writeObject(s);
 		} catch (IOException e) {
@@ -393,9 +496,37 @@ public class Cliente {
 			e.printStackTrace();
 		}
 	}
-	public void enviarDialogResponse(String mensaje,String titulo) {
+
+	public void enviarDialogResponse(String mensaje, String titulo) {
 		try {
 			oos.writeObject(new DialogResponse(mensaje, titulo));
+		} catch (IOException e) {
+			System.out.println("Error 3");
+			e.printStackTrace();
+		}
+	}
+
+	public void enviarProductReciente(ProductRecentSearch prs) {
+		try {
+			oos.writeObject(prs);
+		} catch (IOException e) {
+			System.out.println("Error 3");
+			e.printStackTrace();
+		}
+	}
+
+	public void logOutAccount(boolean openLauncher) {
+		try {
+			s.close();
+		} catch (IOException e) {
+			System.out.println("Error 3");
+			e.printStackTrace();
+		}
+	}
+
+	public void sendStatusServer(int error) {
+		try {
+			oos.writeObject(new StatusServerReponse(error));
 		} catch (IOException e) {
 			System.out.println("Error 3");
 			e.printStackTrace();

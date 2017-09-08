@@ -20,18 +20,23 @@ import com.mysql.jdbc.UpdatableResultSet;
 
 import cliente.net.register.RegisterActivity;
 import constantes.NetConstants;
+import main.mainApplication.Constantes;
 import main.mainApplication.MainApplication;
 import mensajes.commands.DialogResponse;
 import mensajes.commands.EmailCodeVerification;
 import mensajes.commands.EmailResponse;
+import mensajes.commands.LogOutCommand;
 import mensajes.commands.LoginResponse;
 import mensajes.commands.RegisterCommand;
+import mensajes.commands.StatusServerReponse;
 import mensajes.commands.UserResponse;
 import mensajes.requests.CreateProductRequest;
 import mensajes.requests.EmailExistRequest;
 import mensajes.requests.LoginRequest;
 import mensajes.requests.RegisterRequest;
+import mensajes.requests.RequestServerStatus;
 import mensajes.requests.SendEmailRequest;
+import mensajes.requests.TransferProductToSoldProductRequest;
 import mensajes.requests.UserExistRequest;
 import productos.InformacionProducto;
 import productos.ProductId;
@@ -39,10 +44,11 @@ import productos.Producto;
 import productos.ProductoParaEditar;
 import productos.ProductsRequest;
 
-import productos.SendStatusViews;
+import productos.SendStatusViewsExpire;
 import productos.UpdateStatus;
 import products.myProducts.main.ConstantesCategorias;
 import productos.GetStatusViewsProductById;
+import search.ProductRecentSearch;
 import search.ProductoSearch;
 import search.SearchInfo;
 import utils.dataUtils.MessageUtils;
@@ -75,8 +81,7 @@ public class MainCliente {
 			MessageUtils.logn("No hay conexion a Internet o el servidor no está disponible");
 			return false;
 		} catch (IOException e) {
-			MessageUtils.logn("Servidor no disponible");
-			MessageUtils.logn("Error Cliente 1");
+			MessageUtils.logn("Server not working");
 			return false;
 		}
 
@@ -89,7 +94,7 @@ public class MainCliente {
 						Object o = ois.readObject();
 						System.out.println(o.getClass().getName());
 
-						MessageUtils.logn("Element received");
+						MessageUtils.logn("Element received "+o.getClass().getName());
 						if (o instanceof RegisterCommand) {
 							RegisterCommand rc = (RegisterCommand) o;
 
@@ -126,6 +131,9 @@ public class MainCliente {
 							LoginResponse lr = (LoginResponse) o;
 							if (lr.getRespuesta()) {
 								MainApplication.l.abrirPerfil(lr.getUsername());
+								Constantes.usuario = lr.getUsername();
+								Constantes.phone = lr.getPhone();
+								Constantes.email = lr.getEmail();
 							} else {
 								MainApplication.l.enviarMensajeDeError(lr.getMensajeError());
 							}
@@ -142,6 +150,7 @@ public class MainCliente {
 										p.getImageBytes());
 
 							}
+				
 							if (MainApplication.pw != null) {
 								MainApplication.pw.setVisible(true);
 							}
@@ -149,7 +158,7 @@ public class MainCliente {
 						if (o instanceof InformacionProducto) {
 							InformacionProducto pp = (InformacionProducto) o;
 							Producto p = pp.getProducto();
-							
+
 							if (main.mainApplication.Constantes.productRequestForPreview) {
 								MainApplication.pview.update(p);
 								main.mainApplication.Constantes.productRequestForPreview = false;
@@ -162,25 +171,45 @@ public class MainCliente {
 							ProductoSearch ps = (ProductoSearch) o;
 							MainApplication.sw.t.createNewRow(ps.getOwner(), ps.getId(), ps.getName(),
 									ps.getInformacion(), ps.isNegociable(), ps.getCategoria(), ps.getTipo(),
-									ps.getPrice(), ps.getImageBytes(),ps.getViews(),ps.getStatus());
+									ps.getPrice(), ps.getImageBytes(), ps.getViews(), ps.getStatus(),ps.getCreateTime());
 
 						}
-						if (o instanceof SendStatusViews) {
-							SendStatusViews ss = (SendStatusViews) o;
-							MainApplication.pw.updateStatus(ss.getStatus(),ss.getViews());
+						if (o instanceof SendStatusViewsExpire) {
+							SendStatusViewsExpire ss = (SendStatusViewsExpire) o;
+							MainApplication.pw.updateLabels(ss.getStatus(), ss.getViews(),ss.getExpirationTime());
 
 						}
 						if (o instanceof DialogResponse) {
 							DialogResponse dd = (DialogResponse) o;
-							JOptionPane.showMessageDialog(null, dd.getMensaje(), dd.getTitulo(), JOptionPane.WARNING_MESSAGE);
+							JOptionPane.showMessageDialog(null, dd.getMensaje(), dd.getTitulo(),
+									JOptionPane.WARNING_MESSAGE);
 
 						}
-						
+						if (o instanceof ProductRecentSearch) {
+							ProductRecentSearch prs = (ProductRecentSearch) o;
+							MainApplication.maw.trp.createNewRow(prs.getOwner(), prs.getId(), prs.getName(),
+									prs.getInformacion(), prs.isNegociable(), prs.getCategoria(), prs.getTipo(), prs.getPrice(), prs.getImageBytes(), prs.getViews(),
+									prs.getStatus(), prs.getTime());
+
+						}
+						if (o instanceof StatusServerReponse) {
+							StatusServerReponse ssr = (StatusServerReponse) o;
+							MainApplication.l.updateStatusServer(ssr.getStatusServer());
+
+						}
 
 					} catch (ClassNotFoundException | IOException e) {
-						MessageUtils.logn("Error Cliente 3");
+						MainApplication.closeActivities();
+					
 						connected = false;
-						e.printStackTrace();
+						MessageUtils.logn("Error send thread to read Objects");
+						try {
+							MainApplication.restartApplication(null);
+						} catch (IOException e1) {
+						
+							e1.printStackTrace();
+						}
+					
 					}
 				}
 
@@ -247,10 +276,10 @@ public class MainCliente {
 
 	public static void sendLoginRequest(String username, String password) {
 		try {
-			oos.writeObject(new LoginRequest(username, password,main.mainApplication.Constantes.version));
+			oos.writeObject(new LoginRequest(username, password, main.mainApplication.Constantes.version));
 		} catch (IOException e) {
-			MessageUtils.logn("Error Cliente 4");
-			e.printStackTrace();
+			MainApplication.l.enviarMensajeDeError("Server is not available now");
+			MessageUtils.logn("Error send LoginRequest");
 		}
 
 	}
@@ -340,15 +369,17 @@ public class MainCliente {
 		}
 
 	}
-	public static void addView(int idProducto,String usuario) {
+
+	public static void addView(int idProducto, String usuario) {
 		try {
-			oos.writeObject(new AddViews(idProducto,usuario));
+			oos.writeObject(new AddViews(idProducto, usuario));
 		} catch (IOException e) {
 			MessageUtils.logn("Error Cliente 4");
 			e.printStackTrace();
 		}
 
 	}
+
 	public static void requestStatusViewsProductById(int idProducto) {
 		try {
 			oos.writeObject(new GetStatusViewsProductById(idProducto));
@@ -358,12 +389,32 @@ public class MainCliente {
 		}
 
 	}
-	public static void updateStatus(int status,int id){
+
+	public static void updateStatus(int status, int id) {
 		try {
-			oos.writeObject(new UpdateStatus(status,id));
+			oos.writeObject(new UpdateStatus(status, id));
 		} catch (IOException e) {
 			MessageUtils.logn("Error Cliente 4");
 			e.printStackTrace();
 		}
 	}
+
+	public static void requestRecentProducts() {
+		try {
+			oos.writeObject(new ProductRecentSearch());
+		} catch (IOException e) {
+			MessageUtils.logn("Error Cliente 4");
+			e.printStackTrace();
+		}
+	}
+	public static void requestStatusServer() {
+		try {
+			oos.writeObject(new RequestServerStatus());
+		} catch (IOException e) {
+			MessageUtils.logn("Error Cliente 4");
+			e.printStackTrace();
+		}
+	}
+
+
 }

@@ -53,6 +53,7 @@ public class MyProductWindow extends JFrame {
 	JPanel p5 = new JPanel(new FlowLayout());
 	JPanel p6 = new JPanel(new FlowLayout());
 	JPanel p7 = new JPanel(new FlowLayout());
+	JPanel p8 = new JPanel(new FlowLayout());
 
 	public Button b = new Button(new Color(0, 132, 0), "new.jpg", "New");
 	public Button b1 = new Button(new Color(0, 0, 153), "edit.jpg", "Edit");
@@ -61,7 +62,9 @@ public class MyProductWindow extends JFrame {
 	public Button b4 = new Button(new Color(204, 0, 204), "update.jpg", "Status");
 	public LabelButton b5 = new LabelButton(Color.BLACK, 55, 180, "");
 	public LabelButton b6 = new LabelButton(Color.BLACK, 55, 180, "");
+	public LabelButton b7 = new LabelButton(Color.BLACK, 55, 180, "");
 	Font font = new Font("Microsoft Sans Sherif", Font.BOLD, 18);
+
 	public TableDemo tm = new TableDemo();
 
 	public MyProductWindow() {
@@ -109,6 +112,7 @@ public class MyProductWindow extends JFrame {
 		p5.setOpaque(false);
 		p6.setOpaque(false);
 		p7.setOpaque(false);
+		p8.setOpaque(false);
 
 		p1.add(b);
 		p2.add(b1);
@@ -117,6 +121,7 @@ public class MyProductWindow extends JFrame {
 		p5.add(b4);
 		p6.add(b5);
 		p7.add(b6);
+		p8.add(b7);
 
 		pa.add(p1, gbc);
 		pa.add(p2, gbc);
@@ -125,10 +130,11 @@ public class MyProductWindow extends JFrame {
 		pb.add(p5, gbc);
 		pc.add(p6, gbc);
 		pc.add(p7, gbc);
+		pc.add(p8,gbc);
 
 		pa.setBounds(WIDTH - 300, 20, 230, HEIGHT - 900);
 		pb.setBounds(WIDTH - 300, 300, 230, HEIGHT - 1000);
-		pc.setBounds(WIDTH - 300, 490, 230, HEIGHT - 1000);
+		pc.setBounds(WIDTH - 300, 490, 230, HEIGHT - 920);
 
 		mainPanel.add(pa);
 		mainPanel.add(pb);
@@ -138,6 +144,7 @@ public class MyProductWindow extends JFrame {
 		tm.setOpaque(false);
 
 		mainPanel.add(tm);
+
 		this.addWindowListener(new WindowAdapter() {
 
 			@Override
@@ -229,12 +236,16 @@ public class MyProductWindow extends JFrame {
 
 	}
 
-	public void updateStatus(int status, int views) {
+	public void updateLabels(int status, int views,int time) {
 		if (MainApplication.usw != null) {
 
 			MainApplication.usw.slider.setValue(status);
+			if (status == 2) {
+				MainApplication.usw.warning.setVisible(true);
+			}
 			MainApplication.usw.updateLabel();
 		}
+		
 		String statusString = (ConstantesCategorias.fases[status]);
 		if (status == 0) {
 			this.b5.updateColorTexto(new Color(0, 153, 0), statusString);
@@ -251,6 +262,16 @@ public class MyProductWindow extends JFrame {
 		}
 		if (views > 250) {
 			this.b6.updateColorTexto(new Color(204, 0, 204), "Views: " + Integer.toString(views));
+		}
+		int days = (int)(time/24);
+		int hours = (int)(time%24);
+		String mensajeExpiration= "Expire in "+days+"d "+hours+"h";
+		if (time>100) {
+			this.b7.updateColorTexto(new Color(0, 153, 0), mensajeExpiration);
+		} else if (time>24) {
+			this.b7.updateColorTexto(new Color(255, 128, 0), mensajeExpiration);
+		} else if (time<=24) {
+			this.b7.updateColorTexto(new Color(153, 0, 0), mensajeExpiration);
 		}
 
 	}

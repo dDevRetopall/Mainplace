@@ -17,6 +17,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.border.MatteBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.TableModel;
@@ -28,6 +29,7 @@ import gui.jcomponents.JPanelBackground;
 import gui.jcomponents.TableDemo;
 import gui.popup.popupFrame;
 import productos.Producto;
+
 
 public class MainApplicationWindow extends JFrame {
 	int WIDTH, HEIGHT;
@@ -41,14 +43,14 @@ public class MainApplicationWindow extends JFrame {
 	public ButtonWithSize b2 = new ButtonWithSize(220, 70, new Color(255, 128, 0), "chats.jpg", "Chats");
 	JPanel pTitle = new JPanel(new FlowLayout());
 	JLabel l = new JLabel();
-
+	JLabel labelTableRecent = new JLabel("RECENT PRODUCTS");
 	JPanel pUsername = new JPanel(new FlowLayout());
 	JLabel l2 = new JLabel();
-
+	public TableRecentProducts trp = new TableRecentProducts();
 	Font font = new Font("Microsoft Sans Sherif", Font.BOLD, 18);
 
 	public MainApplicationWindow(String username) {
-		Constantes.usuario = username;
+		
 		l2.setText("Hi, " + username);
 		l2.setFont(font.deriveFont(Font.BOLD, 30));
 
@@ -89,7 +91,16 @@ public class MainApplicationWindow extends JFrame {
 		p.setBounds(0, HEIGHT / 2, WIDTH, 100);
 
 		mainPanel.add(p);
-
+		
+		trp.setBounds(WIDTH/2-225, 200, 500, 300);
+		trp.cleanTable();
+		trp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		labelTableRecent.setFont(font);
+		labelTableRecent.setForeground(new Color(0,0,153));
+		labelTableRecent.setHorizontalAlignment(JLabel.CENTER);
+		labelTableRecent.setBounds(WIDTH/2-225, 150, 450, 50);
+		mainPanel.add(labelTableRecent);
+		mainPanel.add(trp);
 		b.addActionListener(new ActionListener() {
 
 			@Override

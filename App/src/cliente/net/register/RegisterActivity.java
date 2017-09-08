@@ -521,9 +521,10 @@ public class RegisterActivity extends JFrame {
 									for (char c : pwd) {
 										password = password + c;
 									}
-									MainCliente.createRegisterRequest(tf1.getText(), password, tf2.getText(),
+									MainCliente.createRegisterRequest(tf1.getText(), password, tf2.getText().trim().replace(" ", ""),
 											tf3.getText());
 									presionado = false;
+									verification.setEnabled(false);
 									labelCode.setText("Creating account");
 									p33.add(labelCode);
 									p33.updateUI();
@@ -605,10 +606,9 @@ public class RegisterActivity extends JFrame {
 				}
 			}
 
-	
-
 		});
 	}
+
 	public void waiting() {
 		info = "Trying to send a verification email";
 		background.setText("Waiting");
@@ -620,7 +620,7 @@ public class RegisterActivity extends JFrame {
 		p6.add(p11);
 		p6.add(p22);
 		p6.updateUI();
-		
+
 		tf1.setEnabled(false);
 		tf4.setEnabled(false);
 		tf5.setEnabled(false);
@@ -628,19 +628,11 @@ public class RegisterActivity extends JFrame {
 		tf3.setEnabled(false);
 
 	}
+
 	public void cambiarIcono(String icono, JLabel l) {
-		ImageIcon imageIcon = new ImageIcon(getClass().getResource(icono)); // load
-																			// the
-																			// image
-																			// to
-																			// a
-																			// imageIcon
+		ImageIcon imageIcon = new ImageIcon(getClass().getResource(icono)); 
 		Image image = imageIcon.getImage(); // transform it
-		Image newimg = image.getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH); // scale
-																						// it
-																						// the
-																						// smooth
-																						// way
+		Image newimg = image.getScaledInstance(25, 25, java.awt.Image.SCALE_SMOOTH); 
 		imageIcon = new ImageIcon(newimg);
 		l.setIcon(imageIcon);
 	}
@@ -705,7 +697,7 @@ public class RegisterActivity extends JFrame {
 		p33.add(labelCode);
 		p33.updateUI();
 		background.setText("The account was succesfully created");
-		background2.setText("Please go to the main place to see our feautures");
+		background2.setText("Please click here for next steps");
 
 		background2.addMouseListener(new MouseAdapter() {
 
@@ -713,7 +705,7 @@ public class RegisterActivity extends JFrame {
 			public void mouseClicked(MouseEvent e) {
 
 				RegisterActivity.this.dispose();
-				MainApplication.createLoginActivity();
+				MainApplication.createLoginActivity(true);
 
 			}
 
@@ -871,7 +863,7 @@ public class RegisterActivity extends JFrame {
 				p6.updateUI();
 				p4.remove(pb);
 				p4.updateUI();
-				
+
 				background.setText("Waiting for code");
 				info = "We have sent you a verification email";
 				pBoton.remove(b);

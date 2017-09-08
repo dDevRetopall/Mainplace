@@ -27,7 +27,7 @@ public class SearchEngine {
 
 			c.enviarCoincidenciarSearch(new ProductoSearch(ps.getUsername(), ps.getId(), ps.getNameProduct(),
 					ps.getPrecio(), ps.getInformacion(), ps.getTipo(), ps.getCategoria(), ps.isNegociable(),
-					ps.getImageBytes(), ps.getViews(),ps.getStatus()));
+					ps.getImageBytes(), ps.getViews(),ps.getStatus(),ps.getTime()));
 
 		} else {
 			System.out.println("No Coincidencia encontrada");
@@ -107,4 +107,5 @@ public class SearchEngine {
 		}
 		// return false;
 	}
+
 }

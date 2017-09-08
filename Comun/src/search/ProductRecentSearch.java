@@ -1,11 +1,11 @@
 package search;
 
-
 import java.io.Serializable;
 
 import sharedUtils.TimeCalendar;
 
-public class ProductoSearch implements Serializable{
+public class ProductRecentSearch implements Serializable{
+
 	private String name;
 	private double price;
 	private String informacion;
@@ -17,10 +17,12 @@ public class ProductoSearch implements Serializable{
 	private String owner;
 	private int views;
 	private int status;
-	private TimeCalendar createTime;
+	private TimeCalendar t;
+	public ProductRecentSearch(){
+		
+	}
 
-
-	public ProductoSearch(String owner,int id,String name,double price,String informacion,int tipo,int categoria,boolean negociable,byte[]imageBytes,int views,int status,TimeCalendar createTime){
+	public ProductRecentSearch(String owner,int id,String name,double price,String informacion,int tipo,int categoria,boolean negociable,byte[]imageBytes,int views,int status,TimeCalendar t){
 		this.owner = owner;
 		this.id = id;
 		this.name = name;
@@ -33,7 +35,7 @@ public class ProductoSearch implements Serializable{
 		this.imageBytes = imageBytes;
 		this.views = views;
 		this.status = status;
-		this.createTime = createTime;
+		this.t = t;
 		
 	}
 	
@@ -81,12 +83,12 @@ public class ProductoSearch implements Serializable{
 		return status;
 	}
 
-	public TimeCalendar getCreateTime() {
-		return createTime;
+	public TimeCalendar getTime() {
+		return t;
 	}
 	
 	
 	
 	
-	
+
 }

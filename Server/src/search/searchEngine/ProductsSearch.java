@@ -1,5 +1,7 @@
 package search.searchEngine;
 
+import sharedUtils.TimeCalendar;
+
 public class ProductsSearch {
 
 
@@ -14,8 +16,9 @@ public class ProductsSearch {
 	private String informacion;
 	private int views;
 	private int status;
+	private TimeCalendar t;
 
-	public ProductsSearch(String username,int id,String nameProduct,String informacion,double precio,int categoria,int tipo,boolean negociable,byte[]imageBytes,int views,int status){
+	public ProductsSearch(String username,int id,String nameProduct,String informacion,double precio,int categoria,int tipo,boolean negociable,byte[]imageBytes,int views,int status,TimeCalendar t){
 		this.username = username;
 		this.id = id;
 		this.nameProduct = nameProduct;
@@ -27,6 +30,7 @@ public class ProductsSearch {
 		this.imageBytes = imageBytes;
 		this.views = views;
 		this.status = status;
+		this.t = t;
 
 		
 	}
@@ -74,6 +78,11 @@ public class ProductsSearch {
 	public int getStatus() {
 		return status;
 	}
+
+	public TimeCalendar getTime() {
+		return t;
+	}
+	
 	
 	
 	

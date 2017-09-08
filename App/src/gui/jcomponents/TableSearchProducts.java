@@ -21,7 +21,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import findProducts.search.RssFeedCellRenderer;
+import gui.jcomponents.tables.RssFeedCellRenderer;
 import main.mainApplication.MainApplication;
 import products.myProducts.main.CellRenderer;
 import products.myProducts.main.ConstantesCategorias;

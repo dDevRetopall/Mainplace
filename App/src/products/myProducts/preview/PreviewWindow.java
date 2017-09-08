@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Image;
+import java.sql.Date;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
@@ -15,6 +16,7 @@ import gui.jcomponents.JPanelBackground;
 import main.mainApplication.Constantes;
 import productos.Producto;
 import products.myProducts.main.ConstantesCategorias;
+import sharedUtils.TimeCalendar;
 import utils.dataUtils.FontLoader;
 import utils.imageUtils.ImageUtilsUpdater;
 
@@ -28,7 +30,8 @@ public class PreviewWindow extends JFrame {
 	JLabel user = new JLabel();
 	JLabel status = new JLabel();
 	JPanel pstatus = new JPanel();
-	Font font = FontLoader.createFont(Constantes.nameFolderFonts+"/AGENCYB.TTF", 18, "Bold");
+	Font font = new Font("Microsoft Sans Sherif", Font.BOLD, 14);
+	Font fontStatus = FontLoader.createFont(Constantes.nameFolderFonts+"/AGENCYB.TTF", 26, "Bold");
 	JPanel pButtons = new JPanel(new FlowLayout());
 	Button b = new Button(new Color(0,0,153),"chats.jpg","Start chat");
 	Button b2 = new Button(new Color(0,0,153),"username.jpg","View user");
@@ -78,7 +81,8 @@ public class PreviewWindow extends JFrame {
 		pstatus.setBounds(17, 52, Constantes.ImgProfileX-4, 35);
 		pstatus.setOpaque(true);
 		pstatus.add(status);
-		status.setFont(font);
+		status.setFont(fontStatus);
+		
 		status.setForeground(Color.WHITE);
 		mainPanel.add(pstatus,2,0);
 		getProducto();
@@ -93,6 +97,7 @@ public class PreviewWindow extends JFrame {
 	}
 
 	public void update(Producto p) {
+	
 		this.setTitle(p.getName());
 		Image i = ImageUtilsUpdater.ByteArrayToImage(p.getImageBytes());
 		Image profileImage = ImageUtilsUpdater.scale(i, Constantes.ImgProfileX, Constantes.ImgProfileY);
@@ -107,7 +112,7 @@ public class PreviewWindow extends JFrame {
 		il.setIcon(new ImageIcon(profileImage));
 		il.setBorder(new MatteBorder(2,2,2,2,new Color(0,0,153)));
 		String status= ConstantesCategorias.fases[p.getStatus()];
-		this.status.setText(status);
+		this.status.setText(status.toUpperCase());
 		if(p.getStatus()==0){
 			this.pstatus.setBackground(new Color(0,153,0));
 		}else if (p.getStatus()==1){
@@ -124,6 +129,8 @@ public class PreviewWindow extends JFrame {
 
 	}
 	public void update(Producto p,String username) {
+		
+		
 		this.setTitle(p.getName());
 		Image i = ImageUtilsUpdater.ByteArrayToImage(p.getImageBytes());
 		Image profileImage = ImageUtilsUpdater.scale(i, Constantes.ImgProfileX, Constantes.ImgProfileY);
@@ -157,10 +164,12 @@ public class PreviewWindow extends JFrame {
 		pButtons.add(b2);
 
 		mainPanel.add(pButtons);
-		user.setBounds(30, 10, 150, 30);
+		user.setBounds(30, 10, 200, 30);
+		Font font2 = new Font("Microsoft Sans Sherif", Font.BOLD, 10);
 		user.setText("Created by "+username);
 		user.setForeground(Color.WHITE);
-		user.setFont(font.deriveFont(Font.BOLD, 18));
+		user.setText(user.getText()+" "+(TimeCalendar.parseo(p.getTime())).toLowerCase());
+		user.setFont(font2);
 		mainPanel.add(user);
 		mainPanel.updateUI();
 	

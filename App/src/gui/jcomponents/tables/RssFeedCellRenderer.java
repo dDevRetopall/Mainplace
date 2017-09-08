@@ -1,4 +1,4 @@
-package findProducts.search;
+package gui.jcomponents.tables;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

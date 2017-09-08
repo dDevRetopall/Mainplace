@@ -1,4 +1,4 @@
-package findProducts.search;
+package gui.jcomponents.tables;
 
 public class View {
 	private String username;

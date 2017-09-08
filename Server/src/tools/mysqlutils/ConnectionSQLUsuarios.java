@@ -270,7 +270,7 @@ public class ConnectionSQLUsuarios {
 	}
 	public static Usuario returnUsuarioByName(String nombreTabla,String usuario) {
 		
-		String  user,nombreTablaProductos;
+		String  user,nombreTablaProductos,phone,email;
 		int id;
 		try {
 			ResultSet rs = st.executeQuery("select * from " + nombreTabla);
@@ -279,8 +279,10 @@ public class ConnectionSQLUsuarios {
 				if(user.equals(usuario)){
 				
 				id= rs.getInt(1);
+				phone = rs.getString(4);
+				email = rs.getString(5);
 				nombreTablaProductos=rs.getString(7);
-				return new Usuario(id,user,nombreTablaProductos);
+				return new Usuario(id,user,nombreTablaProductos,phone,email);
 				}
 			}
 			
