@@ -11,4 +11,7 @@ public class ConstantesServer {
 	public static int timeToTransferProduct = 1;/*In minutes*/
 	public static String nameCooldownTransferationFile="transferations.cd";
 	public static String nameCooldownExpirationFile="expirations.cd";
+	
+	
+	public static String defaultRequiredVersionNonEditable="1.3.0_Beta";
 }

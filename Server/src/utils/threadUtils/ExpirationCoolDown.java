@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import constantesLocalesServidor.ConstantesServer;
 
 import productos.Producto;
+import server.main.Main;
 import server.net.clientHandler.Cliente;
 import tools.datautils.MessageUtils;
 import tools.mysqlutils.SQLConnection;
@@ -57,6 +58,13 @@ public class ExpirationCoolDown implements Runnable {
 			if (contador == 0) {
 				
 				boolean resultado=SQLConnection.eliminarProducto(SQLConnection.getConnection(), idProducto, tablaProductos);
+				for (int i = 0; i < Main.onCooldownProducts.size(); i++) {
+					if (Main.onCooldownProducts.get(i).idProducto == idProducto) {
+						Main.onCooldownProducts.get(i).continuing = false;
+						Main.onCooldownProducts.remove(i);
+
+					}
+				}
 				if(resultado) {
 					MessageUtils.logn("Product eliminado por expiracion correctamente con "+"ID: "+idProducto+" from username "+ username);
 				}else {

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import constantesLocalesServidor.ConstantesServer;
 
 import productos.Producto;
+import server.main.Main;
 import server.net.clientHandler.Cliente;
 import tools.datautils.MessageUtils;
 import tools.mysqlutils.SQLConnection;
@@ -57,11 +58,17 @@ public class TransferationCoolDown implements Runnable {
 				continuing=false;
 				boolean resultado2 = SQLConnection.transferProductToSoldProductTable(username, idProducto, tablaProductos,
 						tablaProductosVendidos);
+				for (int i = 0; i < Main.onExpirationTimeProducts.size(); i++) {
+					if (Main.onExpirationTimeProducts.get(i).idProducto == idProducto) {
+						Main.onExpirationTimeProducts.get(i).continuing = false;
+						Main.onExpirationTimeProducts.remove(i);
+
+					}
+				}
 				if (!resultado2) {
 					MessageUtils.logn("Error trying to transfer the product with productID " + idProducto
 							+ " to soldProducts table, " + "from the user " + username);
 				} else {
-					
 					MessageUtils.logn("El producto ID " + idProducto + " de " + username + " ha sido transferido");
 
 				}

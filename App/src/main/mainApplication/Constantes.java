@@ -27,7 +27,7 @@ public class Constantes {
 	public static String defaultProductPath="defaultProduct.jpg";
 	public static boolean productRequestForPreview=false;
 	public static ArrayList<View>viewsLocalCache = new ArrayList<>();
-	public static String version = "1.2.0_beta";
+	public static String version = "1.3.0_beta";
 	public static int updateRequest = 60000;
 	public static int startUpdater = updateRequest;
 	public static boolean updaterActive=true;

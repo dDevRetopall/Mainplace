@@ -102,7 +102,7 @@ public class CountDownWindow extends JFrame {
 						phase.setText("Executing countdown");
 						if (countdownSeconds == 0) {
 							pb.setValue(100);
-
+							
 							if (logout) {
 								setStop(true);
 								phase.setText("Executing tasks");
@@ -113,11 +113,13 @@ public class CountDownWindow extends JFrame {
 								time.setText("");
 								cancel.setEnabled(false);
 							} else {
+								setStop(true);
 								phase.setText("Finished");
 								cancel.setEnabled(false);
 								phase.setForeground(new Color(0, 153, 0));
 								time.setText("No kick out accounts");
 							}
+							ConstantesServer.serverOperational = false;
 							Main.actualizarStatusServerEnClientes();
 						} else {
 							countdownSeconds--;

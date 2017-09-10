@@ -23,6 +23,7 @@ import search.searchEngine.SearchHandler;
 import server.net.clientHandler.Cliente;
 import server.terminal.Console;
 import server.window.MainWindow;
+import tools.datautils.FileUtils;
 import tools.datautils.MessageUtils;
 import tools.mysqlutils.ConnectionSQLUsuarios;
 import tools.mysqlutils.SQLConnection;
@@ -61,6 +62,7 @@ public class Main {
 		MessageUtils.logn("Welcome to the server. Diego Berrocal. All rights reserved");
 		MessageUtils.logn("Loading cooldowns from users. " + "When the server is offline the cooldown stop");
 
+		FileUtils.loadSettings();
 		ArrayList<TransferationCoolDown> temporalTransferationCooldowns = CooldownLoader.readCooldownsTransferation();
 		if (temporalTransferationCooldowns != null) {
 			for (TransferationCoolDown tc : temporalTransferationCooldowns) {
@@ -196,7 +198,6 @@ public class Main {
 
 
 	public static void logoutAllAccounts(String mensaje, boolean openLauncher) {
-		ConstantesServer.serverOperational = false;
 
 		if (ConstantesServer.serverOperational) {
 			mw.l2.setText("AVAILABLE");

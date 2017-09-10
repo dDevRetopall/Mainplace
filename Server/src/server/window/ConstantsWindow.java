@@ -5,6 +5,7 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -17,6 +18,7 @@ import javax.swing.JTextField;
 
 import constantesLocalesServidor.ConstantesServer;
 import server.main.Main;
+import tools.datautils.FileUtils;
 import tools.datautils.MessageUtils;
 
 public class ConstantsWindow extends JFrame {
@@ -31,8 +33,9 @@ public class ConstantsWindow extends JFrame {
 	JPanel pp7 = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
 	JButton b = new JButton("Apply");
-	JButton b1 = new JButton("Accept");
+	JButton b1 = new JButton("Save");
 	JButton b2 = new JButton("Cancel");
+	JButton b3 = new JButton("Reset settings");
 
 	JLabel l = new JLabel("Expiration file: ");
 	JLabel l1 = new JLabel("Transferation file:");
@@ -41,8 +44,8 @@ public class ConstantsWindow extends JFrame {
 	JLabel l4 = new JLabel("Transferation time");
 	JLabel l5 = new JLabel("Actual version");
 	JLabel l6 = new JLabel("Server available");
-	JLabel ll3 = new JLabel("(in days)");
-	JLabel ll4 = new JLabel("(in hours)");
+	JLabel ll3 = new JLabel("(in hours)");
+	JLabel ll4 = new JLabel("(in minutes)");
 	JTextField tf = new JTextField(10);
 	JTextField tf1 = new JTextField(10);
 	JTextField tf2 = new JTextField(10);
@@ -83,6 +86,7 @@ public class ConstantsWindow extends JFrame {
 		pp7.add(b);
 		pp7.add(b1);
 		pp7.add(b2);
+		pp7.add(b3);
 
 		p.add(pp, gbc);
 		p.add(pp1, gbc);
@@ -170,7 +174,7 @@ public class ConstantsWindow extends JFrame {
 				MessageUtils.logn("Required version : " + ConstantesServer.requiredVersion);
 				MessageUtils.logn("Server operational : " + ConstantesServer.serverOperational);
 				MessageUtils.logn("-------------------------------------------------");
-				
+
 				Main.actualizarStatusServerEnClientes();
 				if (ConstantesServer.serverOperational) {
 					mw.l2.setText("AVAILABLE");
@@ -180,6 +184,24 @@ public class ConstantsWindow extends JFrame {
 					mw.l2.setText("NOT AVAILABLE");
 					mw.l2.setForeground(new Color(204, 0, 0));
 
+				}
+
+			}
+		});
+		b3.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int respuesta = JOptionPane.showConfirmDialog(null,
+						"If you reset the settings the application will restart and the old settings will be removed");
+				if (respuesta == 0) {
+					FileUtils.resetSettings();
+					MessageUtils.logn("Restarting application");
+					try {
+						Main.restartApplication(null);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
 				}
 
 			}

@@ -270,13 +270,14 @@ public class Cliente {
 									if (Main.onExpirationTimeProducts.get(i).idProducto == ep.getId()) {
 										Main.onExpirationTimeProducts.get(i).continuing = false;
 										Main.onExpirationTimeProducts.remove(i);
-
+										MessageUtils.logn("Eliminado producto de expirationProducts cache");
 									}
 								}
 								for (int i = 0; i < Main.onCooldownProducts.size(); i++) {
 									if (Main.onCooldownProducts.get(i).idProducto == ep.getId()) {
 										Main.onCooldownProducts.get(i).continuing = false;
 										Main.onCooldownProducts.remove(i);
+										MessageUtils.logn("Eliminado producto de transferation cache cache");
 
 									}
 								}
@@ -352,9 +353,11 @@ public class Cliente {
 									// from your products in one day");
 									Main.onCooldownProducts.add(tc);
 								} else {
-									for (TransferationCoolDown tc : Main.onCooldownProducts) {
-										if (tc.idProducto == us.getIdProducto()) {
-											tc.continuing = false;
+									for (int i = 0; i < Main.onCooldownProducts.size(); i++) {
+										if (Main.onCooldownProducts.get(i).idProducto == us.getIdProducto()) {
+											Main.onCooldownProducts.get(i).continuing = false;
+											Main.onCooldownProducts.remove(i);
+
 										}
 									}
 								}

@@ -12,6 +12,7 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.ServerSocket;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -21,24 +22,28 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 
 import constantes.NetConstants;
 import constantesLocalesServidor.ConstantesServer;
 import server.main.Main;
 import server.net.clientHandler.Cliente;
+import tools.datautils.FileUtils;
 import tools.datautils.MessageUtils;
 import utils.threadUtils.CooldownLoader;
 
 public class MainWindow extends JFrame {
 	JPanel p = new JPanel(new BorderLayout());
 	JButton stop = new JButton("Stop server");
-	JButton stopConnection = new JButton("Refuse new connections");
+	JButton connectionManager = new JButton("Refuse new connections");
 	JButton restart = new JButton("Restart server");
 	public JTextArea ta = new JTextArea(25, 60);
 	JButton b = new JButton("Save cooldowns");
-	JButton b2 = new JButton("Change constants");
+	JButton b2 = new JButton("Change settings");
 	JButton b3 = new JButton("Maintenance scheduler");
 	JButton b4 = new JButton("Maintenance");
+	JButton b5 = new JButton("Save settings");
 	JPanel pCenter = new JPanel(new FlowLayout());
 	JPanel pSouth = new JPanel(new FlowLayout());
 	public JScrollPane ps = new JScrollPane(ta);
@@ -46,13 +51,17 @@ public class MainWindow extends JFrame {
 	JLabel l = new JLabel("Server status: ");
 	public JLabel l2 = new JLabel("AVAILABLE ");
 	JPanel information = new JPanel(new FlowLayout(FlowLayout.LEFT));
+	JPanel spPanel= new JPanel(new FlowLayout());
 	JProgressBar pb = new JProgressBar();
 	MaintenanceSchuduler ms;
 	protected Maintenance m;
-
+	
+	JPanel statusContent = new JPanel(new FlowLayout());
+	JPanel statusTitle = new JPanel(new FlowLayout());
+	JPanel statusBar = new JPanel(new FlowLayout());
 	public MainWindow() {
 
-		this.setSize(800, 600);
+		this.setSize(850, 685);
 		this.setTitle("Manage Server");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setContentPane(p);
@@ -60,13 +69,30 @@ public class MainWindow extends JFrame {
 		ta.setEditable(false);
 		ta.setFont(font);
 
-		pCenter.add(ps);
-		pCenter.add(information);
-		pCenter.add(pb);
-		pCenter.add(stop);
-		pCenter.add(stopConnection);
+		spPanel.add(ps);
+		pCenter.add(statusTitle);
+		pCenter.add(statusBar);
+		pCenter.add(statusContent);
+		pCenter.setBorder(BorderFactory.createTitledBorder(new LineBorder(Color.BLACK), "Status application"));
+	
+		statusBar.add(pb);
+		
+		statusTitle.add(information);
+		
+		statusContent.add(stop);
+		statusContent.add(connectionManager);
+		statusContent.add(restart);
+		
+		restart.setFocusable(false);
+		stop.setFocusable(false);
+		connectionManager.setFocusable(false);
+		
+		b.setFocusable(false);
+		b2.setFocusable(false);
+		b3.setFocusable(false);
+		b4.setFocusable(false);
 
-		pCenter.add(restart);
+		
 
 		pb.setStringPainted(true);
 		pb.setString("");
@@ -80,10 +106,13 @@ public class MainWindow extends JFrame {
 		ps.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
 		pSouth.add(b);
+		pSouth.add(b5);
 		pSouth.add(b2);
 		pSouth.add(b3);
 		pSouth.add(b4);
-
+		pSouth.setBorder(BorderFactory.createTitledBorder(new LineBorder(Color.BLACK), "Maintenance settings"));
+		
+		p.add(spPanel, BorderLayout.NORTH);
 		p.add(pCenter, BorderLayout.CENTER);
 		p.add(pSouth, BorderLayout.SOUTH);
 
@@ -105,6 +134,7 @@ public class MainWindow extends JFrame {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				MessageUtils.logn("Closing window");
+				FileUtils.saveSettings();
 				MessageUtils.logn("Stopping server");
 				CooldownLoader.saveCooldownsTransferation(Main.onCooldownProducts);
 				CooldownLoader.saveCooldownsExpiration(Main.onExpirationTimeProducts);
@@ -156,6 +186,14 @@ public class MainWindow extends JFrame {
 			}
 
 		});
+		b5.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileUtils.saveSettings();
+				
+			}
+		});
 		stop.addActionListener(new ActionListener() {
 
 			@Override
@@ -165,7 +203,7 @@ public class MainWindow extends JFrame {
 				pb.setValue(100);
 				pb.setForeground(new Color(200, 0, 0));
 				stop.setEnabled(false);
-				stopConnection.setEnabled(false);
+				connectionManager.setEnabled(false);
 				MessageUtils.logn("Closing server connections");
 				l2.setText("");
 				b2.setEnabled(false);
@@ -188,20 +226,20 @@ public class MainWindow extends JFrame {
 
 			}
 		});
-		stopConnection.addActionListener(new ActionListener() {
+		connectionManager.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (stopConnection.getText().equals("Refuse new connections")) {
+				if (connectionManager.getText().equals("Refuse new connections")) {
 					l.setText("Server status: refusing new connections - running");
 					pb.setIndeterminate(true);
 					Main.aceptarConexiones = false;
 					Main.actualizarStatusServerEnClientes();
-					stopConnection.setText("Accept new connections");
+					connectionManager.setText("Accept new connections");
 				} else {
 					l.setText("Server status: accepting new connections - running");
 					pb.setIndeterminate(true);
-					stopConnection.setText("Refuse new connections");
+					connectionManager.setText("Refuse new connections");
 					Main.aceptarConexiones = true;
 					Main.actualizarStatusServerEnClientes();
 				}

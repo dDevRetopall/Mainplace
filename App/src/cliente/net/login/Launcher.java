@@ -42,8 +42,8 @@ import main.mainApplication.MainApplication;
 public class Launcher extends JFrame {
 	Font font = new Font("Microsoft Sans Sherif", Font.BOLD, 25);
 	JPanelBackground mainPanel = new JPanelBackground();
-	JTextField tf1 = new JTextField(14);
-	JPasswordField tf2 = new JPasswordField(17);
+	JTextField tf1 = new JTextField();
+	JPasswordField tf2 = new JPasswordField();
 	JLabel l = new JLabel("launcher");
 	JButton b = new JButton("Check");
 	JPanel arriba = new JPanel(new FlowLayout());
@@ -89,6 +89,8 @@ public class Launcher extends JFrame {
 		north.setBounds(0,0,750,30);
 		il.setForeground(new Color(0,153,0));
 		
+		tf1.setPreferredSize(new Dimension(240,70));
+		tf2.setPreferredSize(new Dimension(240,70));
 		
 
 		arriba.setOpaque(false);
@@ -113,7 +115,7 @@ public class Launcher extends JFrame {
 		tf1.setBorder(BorderFactory.createTitledBorder(new MatteBorder(2, 2, 2, 2, new Color(0, 0, 153)), "Username",
 				TitledBorder.CENTER, TitledBorder.TOP, font, new Color(0, 0, 0)));
 		font = font.deriveFont(Font.PLAIN, 15);
-		tf2.setFont(font);
+		tf2.setFont(font.deriveFont(Font.PLAIN,12));
 		font = font.deriveFont(Font.PLAIN, 18);
 		tf2.setBorder(BorderFactory.createTitledBorder(new MatteBorder(2, 2, 2, 2, new Color(0, 0, 153)), "Password",
 				TitledBorder.CENTER, TitledBorder.TOP, font, new Color(0, 0, 0)));

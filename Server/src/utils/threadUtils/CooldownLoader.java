@@ -14,10 +14,11 @@ import server.main.Main;
 import tools.datautils.MessageUtils;
 
 public class CooldownLoader {
+	static String prefix="Loader";
 	// Solo si su continuing ==true
 	// Escribir ejecutando limpieza de cooldowns en false
 	public static boolean saveCooldownsTransferation(ArrayList<TransferationCoolDown> tc) {
-		MessageUtils.logn("Saving transferations cooldowns");
+		MessageUtils.logn("Saving transferations cooldowns",prefix);
 		File f = new File(ConstantesServer.nameCooldownTransferationFile);
 		if (!f.exists()) {
 			try {
@@ -29,12 +30,12 @@ public class CooldownLoader {
 
 		}
 		try {
-			MessageUtils.logn("Cleaning file");
+			MessageUtils.logn("Cleaning file",prefix);
 			PrintWriter writer = new PrintWriter(f);
 			writer.print("");
 
-			MessageUtils.logn("Executing cleaning for non-continuingcooldowns");
-			MessageUtils.logn("Saving cooldowns");
+			MessageUtils.logn("Executing cleaning for non-continuingcooldowns",prefix);
+			MessageUtils.logn("Saving cooldowns",prefix);
 			for (TransferationCoolDown ttcc : Main.onCooldownProducts) {
 
 				if (ttcc.continuing) {
@@ -53,7 +54,7 @@ public class CooldownLoader {
 
 	public static ArrayList<TransferationCoolDown> readCooldownsTransferation() {
 		ArrayList<TransferationCoolDown> transferations = new ArrayList<>();
-		MessageUtils.logn("Loading transferations cooldowns");
+		MessageUtils.logn("Loading transferations cooldowns",prefix);
 		File f = new File(ConstantesServer.nameCooldownTransferationFile);
 		BufferedReader br = null;
 		try {
@@ -70,7 +71,7 @@ public class CooldownLoader {
 				br = new BufferedReader(new FileReader(f));
 				String s;
 				try {
-					MessageUtils.logn("Loading cooldowns");
+					MessageUtils.logn("Loading cooldowns",prefix);
 					while ((s = br.readLine()) != null) {
 						String[] argumentos = s.split(";");
 						transferations.add(new TransferationCoolDown(argumentos[0], Integer.parseInt(argumentos[1]),
@@ -88,22 +89,22 @@ public class CooldownLoader {
 
 					e.printStackTrace();
 				}
-				return transferations;
+			
 				
 				
 
 			}
-			
+		
 		} catch (FileNotFoundException e1) {
 
 			e1.printStackTrace();
 			return null;
 		}
-		return null;
+		return transferations;
 
 	}
 	public static boolean saveCooldownsExpiration(ArrayList<ExpirationCoolDown> ec) {
-		MessageUtils.logn("Saving expiration cooldowns");
+		MessageUtils.logn("Saving expiration cooldowns",prefix);
 		File f = new File(ConstantesServer.nameCooldownExpirationFile);
 		if (!f.exists()) {
 			try {
@@ -115,12 +116,12 @@ public class CooldownLoader {
 
 		}
 		try {
-			MessageUtils.logn("Cleaning file");
+			MessageUtils.logn("Cleaning file",prefix);
 			PrintWriter writer = new PrintWriter(f);
 			writer.print("");
 
-			MessageUtils.logn("Executing cleaning for non-continuing cooldowns");
-			MessageUtils.logn("Saving cooldowns");
+			MessageUtils.logn("Executing cleaning for non-continuing cooldowns",prefix);
+			MessageUtils.logn("Saving cooldowns",prefix);
 			for (ExpirationCoolDown eecc : Main.onExpirationTimeProducts) {
 
 				if (eecc.continuing) {
@@ -139,7 +140,7 @@ public class CooldownLoader {
 
 	public static ArrayList<ExpirationCoolDown> readCooldownsExpiration() {
 		ArrayList<ExpirationCoolDown> expirations = new ArrayList<>();
-		MessageUtils.logn("Loading expiration cooldowns");
+		MessageUtils.logn("Loading expiration cooldowns",prefix);
 		File f = new File(ConstantesServer.nameCooldownExpirationFile);
 		BufferedReader br = null;
 		try {
@@ -157,7 +158,7 @@ public class CooldownLoader {
 				br = new BufferedReader(new FileReader(f));
 				String s;
 				try {
-					MessageUtils.logn("Loading cooldowns");
+					MessageUtils.logn("Loading cooldowns",prefix);
 					while ((s = br.readLine()) != null) {
 						String[] argumentos = s.split(";");
 						expirations.add(new ExpirationCoolDown(argumentos[0], Integer.parseInt(argumentos[1]),
@@ -175,7 +176,7 @@ public class CooldownLoader {
 
 					e.printStackTrace();
 				}
-				return expirations;
+				
 			
 
 			}
@@ -185,6 +186,6 @@ public class CooldownLoader {
 			return null;
 		}
 	
-		return null;
+		return expirations;
 	}
 }
