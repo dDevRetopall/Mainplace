@@ -872,6 +872,8 @@ public class RegisterActivity extends JFrame {
 				t2.start();
 
 			} else {
+				info = "The activation code haven't been completed. We have resent another email";
+				background2.setText(info);
 				t2.resume();
 			}
 

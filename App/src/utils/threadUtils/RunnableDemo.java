@@ -48,9 +48,12 @@ public class RunnableDemo implements Runnable {
 						ra.background2.setText(ra.info + " (" + minutos + ":" + segundos + ")");
 					}
 					if (ra.resent == false) {
-						ra.info = "The activation code haven't been completed. We have resent another email";
+						ra.info = "Trying to send a verification email";
+						ra.background.setText("Waiting");
+						ra.background2.setText(ra.info);
+						
 						MainCliente.sendEmailSendRequest(ra.tf3.getText(), ra.tf1.getText());
-						ra.waiting();
+						
 						contador = Constantes.timeForCode;
 						ra.resent = true;
 						this.suspend();
